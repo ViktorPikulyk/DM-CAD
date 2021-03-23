@@ -140,6 +140,166 @@ function boruvka (inputArr) {
     }
 }
 
+function postman (arr) {
+
+    document.getElementById("result_text").innerHTML += "\n\n               Chinese postman problem          ";
+    document.getElementById("result_text").innerHTML += "\n1. Check if all nodes are even";
+
+    let edgeCount = [];
+    for (let i = 0; i < arr.length; i++) {
+        edgeCount.push(0);
+        for (let j = 0; j < arr[i].length; j++) {
+            if(arr[i][j] != 0) edgeCount[i]++;
+        }
+    }
+    console.log(edgeCount);
+
+    let oddCount = 0;
+    for (let i = 0; i < edgeCount.length; i++) {
+        if(edgeCount[i] % 2 != 0) oddCount++;
+    }
+
+    if(oddCount > 2){
+        document.getElementById("result_text").innerHTML += "\nFound odd nodes";
+        document.getElementById("result_text").innerHTML += "\nDuplicating edges";
+
+        let oddIndexes = [];
+        for (let i = 0; i < edgeCount.length; i++) {
+            if(edgeCount[i] % 2 != 0) oddIndexes.push(i);
+        }
+        console.log(oddIndexes);
+
+        let duplicatePairs = [];
+
+        while (oddIndexes.length > 1){
+            let first = oddIndexes[0];
+            let second;
+            for (let i = 1; i < oddIndexes.length; i++) {
+                if(arr[first][oddIndexes[i]] != 0 && !second) second = oddIndexes[i];
+            }
+            if(!second) {
+                document.getElementById("result_text").innerHTML += "\nCan`t duplicate edges";
+                return 0;
+            }
+            else{
+                console.log(second)
+                oddIndexes.splice(oddIndexes.indexOf(first), 1);
+                oddIndexes.splice(oddIndexes.indexOf(second), 1);
+                console.log(oddIndexes);
+                duplicatePairs.push([first, second]);
+                document.getElementById("result_text").innerHTML += `\n[${first}-${second}]`;
+            }
+        }
+        
+        console.log(duplicatePairs);
+        eulerianPath(arr, duplicatePairs);
+
+    }else{
+        eulerianPath(arr);
+    }
+
+    function eulerianPath(a, b = []) {
+        document.getElementById("result_text").innerHTML += "\n\n2. Searching Eulerian cycle";
+        let sum = 0;
+        for (let i = 0; i < a.length; i++) {
+            for (let j = 0; j < a[i].length; j++) {
+                sum += a[i][j];
+            }
+        }
+        sum /= 2;
+        for (let i = 0; i < b.length; i++) {
+            sum += a[b[i][0]][b[i][1]];
+        }
+
+        let stack1 = [0];
+        let stack2 = [0];
+
+        let edgeCount = 2;
+        let limit = 0;
+        while(edgeCount > 1 && limit < 25){
+            limit++;
+
+            let next = "O";
+            for (let i = 0; i < a[stack1[stack1.length - 1]].length; i++) {
+                if(a[stack1[stack1.length - 1]][i] != 0 && next == "O") next = i;
+                //console.log(next);
+            }
+            
+            document.getElementById("result_text").innerHTML += `\n\nPath: ${stack1}`;
+            document.getElementById("result_text").innerHTML += `\nCycle: ${stack2}`;
+            if(next == stack2[stack2.length - 1]){
+                stack2.push(stack1[stack1.length - 1])
+
+
+                let newB = []
+                let del = 0;
+                for (let i = 0; i < b.length; i++) {
+                    if(!(b[i][0] == stack1[stack1.length - 2] && b[i][1] == stack1[stack1.length - 1]) && !(b[i][0] == stack1[stack1.length - 1] && b[i][1] == stack1[stack1.length - 2])) newB.push(b[i]);
+                    else {
+                        del++;
+                    }
+                }
+                b = [...newB];
+                if(del == 0){
+                    a[stack1[stack1.length - 1]][next] = 0;
+                    a[next][stack1[stack1.length - 1]] = 0;
+                }
+
+            }
+            else{
+                stack1.push(next);
+                console.log(stack1[stack1.length - 1]+ " : " +stack1[stack1.length - 2]);
+
+                let newB = []
+                let del = 0;
+                for (let i = 0; i < b.length; i++) {
+                    if(!(b[i][0] == stack1[stack1.length - 2] && b[i][1] == stack1[stack1.length - 1]) && !(b[i][0] == stack1[stack1.length - 1] && b[i][1] == stack1[stack1.length - 2])) newB.push(b[i]);
+                    else {
+                        del++;
+                    }
+                }
+                b = [...newB];
+                if(del == 0){
+                    a[stack1[stack1.length - 1]][stack1[stack1.length - 2]] = 0;
+                    a[stack1[stack1.length - 2]][stack1[stack1.length - 1]] = 0;
+                }
+            }
+
+
+            edgeCount = 0;
+            for (let i = 0; i < a.length; i++) {
+                for (let j = 0; j < a[i].length; j++) {
+                    if(a[i][j] != 0) edgeCount++;
+                }
+            }
+            edgeCount /= 2;
+            edgeCount += b.length;
+            console.log(edgeCount);
+        }
+
+        console.log(stack1);
+        console.log(stack2);
+
+        let result = [...stack2];
+
+        for (let i = stack1.length - 1; i >= 0; i--) {
+            result.push(stack1[i]);
+        }
+
+        document.getElementById("result_text").innerHTML += "\n\n";
+        for (let i = 0; i < result.length; i++) {
+            document.getElementById("result_text").innerHTML += `${result[i]}`;
+            if(i < result.length - 1) document.getElementById("result_text").innerHTML += "->";
+        }
+
+        document.getElementById("result_text").innerHTML += `\n\n Sum: ${sum}`;
+
+        console.log(result);
+        console.log(sum);
+
+    }
+}
+
 function starter () {
     document.getElementById("result_text").innerHTML = "";
     let arr = reader();
@@ -161,6 +321,7 @@ function starter () {
                 boruvka(arr);
                 break;
             case 1:
+                postman(arr);
                 break;
             case 2:
                 break;
