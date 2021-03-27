@@ -600,6 +600,119 @@ function graphFiller (arr){
     return result;
 }
 
+function  fordFulkerson (iArr) {
+    let arr = iArr.map(function(arr1) {
+        return arr1.slice();
+    });
+
+    document.getElementById("result_text").innerHTML += "\n\n               Ford–Fulkerson algorithm (FFA)         \n";
+
+    let maxFlow = [];
+    let paths = [];
+    let limit = 0;
+    while(pathFinder(arr) && limit < 25){
+        limit++;
+        
+        document.getElementById("result_text").innerHTML += `\n\n-------------------- Iteration #${limit} ------------------`;
+
+        document.getElementById("result_text").innerHTML += `\n\nSearching paths from 0 to ${arr.length - 1}`;
+
+        let path = pathFinder(arr);
+        console.log(path);
+
+        let minEdge = {
+            coordinates: [],
+            value: Infinity,
+            i: 0
+        }
+
+        for (let i = 0; i < path.length; i++) {
+            if(arr[path[i][0]][path[i][1]] < minEdge.value){
+                minEdge.coordinates = [path[i][0], path[i][1]];
+                minEdge.value = arr[path[i][0]][path[i][1]];
+                minEdge.i = i;
+            }
+        }
+
+        console.log(minEdge);
+
+        for (let i = 0; i < path.length; i++) {
+            if(i == minEdge.i) arr[path[i][0]][path[i][1]] = 0;
+            else arr[path[i][0]][path[i][1]] -= minEdge.value;
+        }
+
+        
+        maxFlow.push(minEdge.value);
+        paths.push(path);
+
+        document.getElementById("result_text").innerHTML += `\n\nFound path: `;
+        for (let i = 0; i < path.length; i++) {
+            if(i == path.length - 1) document.getElementById("result_text").innerHTML += `(${path[i][0]})=>(${path[i][1]})`;
+            else document.getElementById("result_text").innerHTML += `(${path[i][0]})=>`;
+        }
+        document.getElementById("result_text").innerHTML += `\nPath min edge: (${minEdge.coordinates[0]},${minEdge.coordinates[1]}) = ${minEdge.value}`;
+        document.getElementById("result_text").innerHTML += `\n\nNew matrix: \n${printMatrix(arr)}`;
+    }
+
+    document.getElementById("result_text").innerHTML += `\n\n----------------------------------------------------`;
+
+    document.getElementById("result_text").innerHTML += `\n\nAll paths:\n`;
+
+    for (let i = 0; i < paths.length; i++) {
+        for (let j = 0; j < paths[i].length; j++) {
+            if(j == paths[i].length - 1) document.getElementById("result_text").innerHTML += `(${paths[i][j][0]})=>(${paths[i][j][1]})`;
+            else document.getElementById("result_text").innerHTML += `(${paths[i][j][0]})=>`;
+        }
+        document.getElementById("result_text").innerHTML += `\nmin edge = ${maxFlow[i]}\n`;
+    }
+
+    document.getElementById("result_text").innerHTML += `\nMaximum flow:\n`;
+
+    for (let i = 0; i < maxFlow.length; i++) {
+        if(i == maxFlow.length - 1) document.getElementById("result_text").innerHTML += `${maxFlow[i]}`;
+        else document.getElementById("result_text").innerHTML += `${maxFlow[i]} + `;
+    }
+
+    document.getElementById("result_text").innerHTML += ` = ${maxFlow.reduce((a, b) => a + b, 0)}`;
+
+    console.log(...maxFlow);
+    console.log(paths);
+
+
+    function pathFinder (a){
+        let path = [];
+        let edgeList = [];
+        for (let i = 0; i < a.length; i++) {
+            for (let j = 0; j < a[i].length; j++) {
+                if(a[i][j] != 0) edgeList.push({coordinates:[i,j], value:a[i][j]});
+            }
+        }
+
+        if(edgeList.findIndex(val => val.coordinates[0] == 0) == -1) return 0;
+        path.push(edgeList[edgeList.findIndex(val => val.coordinates[0] == 0)].coordinates);
+
+        while(edgeList.findIndex(val => val.coordinates[0] == path[path.length - 1][1]) != -1){
+            console.log(`Found next: ${edgeList[edgeList.findIndex(val => val.coordinates[0] == path[path.length - 1][1])].coordinates}`);
+            path.push(edgeList[edgeList.findIndex(val => val.coordinates[0] == path[path.length - 1][1])].coordinates);
+            edgeList.splice(edgeList.findIndex(val => val.coordinates == path[path.length - 1]), 1);
+            console.log("SPLICED");
+            console.log(`New edgeList: \n`);
+            console.log(edgeList);
+            if(edgeList.findIndex(val => val.coordinates[0] == path[path.length - 1][1]) == -1 && path[path.length - 1][1] != a.length - 1){
+                path.splice(path.length - 1);
+            }
+        }
+
+        if(path[path.length - 1][1] == a.length - 1) return path;
+        else{
+            console.log("Not a path");
+            a[path[path.length - 1][0]][path[path.length - 1][1]] = 0
+            return pathFinder(a);
+        }
+    }
+
+}
+
 function starter () {
     document.getElementById("result_text").innerHTML = "";
     let arr = reader();
@@ -627,6 +740,7 @@ function starter () {
                 commisVoyageur(graphFiller(arr));
                 break;
             case 3:
+                fordFulkerson(arr);
                 break;
         }
     }
@@ -641,4 +755,18 @@ function reader() {
         arr.push(nArr[i].replace(/ +$/, "").split(' ').map(Number));
     }
     return arr;
+}
+
+function printMatrix(a){
+    let output = "";
+    for (let i = 0; i < a.length; i++) {
+        output += "["
+        for (let j = 0; j < a[i].length; j++) {
+            if(a[i][j] < 10) output += `${a[i][j]}   `;
+            else if(a[i][j] < 100) output += `${a[i][j]}  `;
+            else output += `${a[i][j]} `;
+        }
+        output += "]\n"
+    }
+    return output;
 }
